@@ -5,6 +5,7 @@ development and Postgres in production without edits.
 """
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -14,11 +15,26 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 MEDIA_DIR = BACKEND_DIR / "media"
 
 
+def _normalize_db_url(url: str) -> str:
+    """Make a Postgres URL (e.g. Render's) work with SQLAlchemy + psycopg 3."""
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url[len("postgres://"):]
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url[len("postgresql://"):]
+    return url
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="PASHU_", env_file=".env", extra="ignore")
 
     database_url: str = f"sqlite:///{(BACKEND_DIR / 'pashupehchan.db').as_posix()}"
     media_dir: str = str(MEDIA_DIR)
+
+    # Comma-separated list of allowed CORS origins ("*" = any, fine without cookies).
+    cors_origins: str = "*"
+    # Persist uploaded nose images to disk? Off in production (ephemeral FS);
+    # the fingerprint vectors always live in the database regardless.
+    store_images: bool = True
 
     # Identity thresholds. Tuned conservatively; fine-tune on field data later.
     match_accept_threshold: float = 0.72   # cosine similarity to call it a confident match
@@ -27,6 +43,17 @@ class Settings(BaseSettings):
     quality_min_brightness: float = 40.0   # mean luma floor (0-255)
     quality_max_brightness: float = 225.0  # mean luma ceiling (0-255)
     enrol_shots: int = 5
+
+    @property
+    def effective_database_url(self) -> str:
+        # Render/Heroku-style DATABASE_URL (unprefixed) wins, then PASHU_DATABASE_URL,
+        # then the local SQLite default.
+        raw = os.environ.get("DATABASE_URL") or self.database_url
+        return _normalize_db_url(raw)
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()] or ["*"]
 
     @property
     def media_path(self) -> Path:

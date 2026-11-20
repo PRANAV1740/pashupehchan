@@ -58,8 +58,11 @@ async def enrol(
 
     settings = get_settings()
     embedder = get_embedder()
-    media_dir: Path = settings.media_path / "noseprints" / animal_id
-    media_dir.mkdir(parents=True, exist_ok=True)
+    # Only touch disk when configured to (off in production — the FS is ephemeral).
+    media_dir: Path | None = None
+    if settings.store_images:
+        media_dir = settings.media_path / "noseprints" / animal_id
+        media_dir.mkdir(parents=True, exist_ok=True)
 
     accepted = 0
     rejected = []
@@ -69,15 +72,18 @@ async def enrol(
         if not quality.ok:
             rejected.append(quality)
             continue
-        fname = f"{uuid.uuid4().hex}.jpg"
-        (media_dir / fname).write_bytes(data)
+        image_path: str | None = None
+        if media_dir is not None:
+            fname = f"{uuid.uuid4().hex}.jpg"
+            (media_dir / fname).write_bytes(data)
+            image_path = str(Path("noseprints") / animal_id / fname)
         print_row = NosePrint(
             animal_id=animal_id,
-            image_path=str(Path("noseprints") / animal_id / fname),
+            image_path=image_path,
             quality_score=quality.sharpness,
             embedder=embedder.name,
         )
-        print_row.embedding = embedder.embed(data)
+        print_row.embedding = embedder.embed(data)  # fingerprint vector -> always stored in DB
         db.add(print_row)
         accepted += 1
 

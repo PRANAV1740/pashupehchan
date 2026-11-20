@@ -22,7 +22,7 @@ app = FastAPI(title="PashuPehchan API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # dev only; lock down for production
+    allow_origins=get_settings().cors_origin_list,  # set PASHU_CORS_ORIGINS to the frontend URL in prod
     allow_methods=["*"],
     allow_headers=["*"],
 )
