@@ -1,6 +1,10 @@
 import type { Animal, AppEvent, EnrolResult, Household, IdentifyResult, Reminder } from "./types";
 
-const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? "http://localhost:8000";
+// Production: set VITE_API_URL to the deployed backend. Falls back to localhost for dev.
+const BASE =
+  (import.meta.env.VITE_API_URL as string | undefined) ??
+  (import.meta.env.VITE_API_BASE as string | undefined) ??
+  "http://localhost:8000";
 
 async function j<T>(res: Response): Promise<T> {
   if (!res.ok) {
