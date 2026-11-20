@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#1f7a4d"/>
+  <!-- stylised muzzle: two nostrils in a rounded snout -->
+  <rect x="42" y="54" width="108" height="84" rx="42" fill="#fbf7ef"/>
+  <ellipse cx="78" cy="98" rx="13" ry="20" fill="#1f7a4d"/>
+  <ellipse cx="114" cy="98" rx="13" ry="20" fill="#1f7a4d"/>
+</svg>

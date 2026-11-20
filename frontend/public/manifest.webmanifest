@@ -1,0 +1,13 @@
+{
+  "name": "PashuPehchan",
+  "short_name": "PashuPehchan",
+  "description": "Naak se pehchan, awaaz se khata",
+  "lang": "hi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fbf7ef",
+  "theme_color": "#1f7a4d",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

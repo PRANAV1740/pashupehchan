@@ -1,0 +1,11 @@
+# Optional ML dependencies — enable the real MobileNetV3 nose-print embedder
+# (TorchBackboneEmbedder). Without these the app still runs, on the
+# dependency-free classical fallback (ClassicalEmbedder).
+#
+# Install CPU wheels (Windows / Linux / macOS):
+#   pip install -r requirements-ml.txt --index-url https://download.pytorch.org/whl/cpu
+#
+# Note: embeddings from different models are not comparable, so animals enrolled
+# under the classical fallback must be re-enrolled after switching to MobileNet.
+torch==2.15.0
+torchvision==0.29.2
