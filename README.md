@@ -1,68 +1,119 @@
-# PashuPehchan (पशु पहचान)
+# PashuPehchan 🐃
 
-> Naak se pehchan, awaaz se khata — identity by nose, record by voice.
+**पशु पहचान — "animal identity"**
 
-PashuPehchan gives every untagged animal an identity from a nose photo and keeps
-its health record by voice. Vaccinations are not missed, sick animals reach a vet
-sooner, and co-ops and insurers can trust the record.
+> **Naak se pehchan, awaaz se khata** — identity by the nose, a record kept by voice.
 
-This repository is the **product**, built in vertical slices:
+PashuPehchan gives every **untagged** cattle or buffalo an identity from a photo of
+its nose, and keeps its health record by **voice** — so vaccinations aren't missed,
+sick animals reach a vet sooner, and dairy co-ops and insurers can trust the record.
+Phone-first, works in **9 Indian languages**, and designed for people who don't type.
 
-| Module | Status |
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+![Backend](https://img.shields.io/badge/backend-FastAPI-009688)
+![Frontend](https://img.shields.io/badge/frontend-React%20%2B%20Vite-61dafb)
+
+## 🔗 Live
+
+| | Link |
 | --- | --- |
-| 1. Nose-photo identity (enrol + re-identify within household) | in progress |
-| 2. Voice logging (speech → saved event, confirm-back) | planned |
-| 3. Reminders (rules from the NDDB schedule) | planned |
-| 4. Triage + vet routing (green / amber / red) | planned |
-| 5. Record + co-op dashboard | planned |
+| **App** | https://pashupehchan-psi.vercel.app |
+| **API** | https://pashupehchan-api.onrender.com ([docs](https://pashupehchan-api.onrender.com/docs)) |
+| **Co-op dashboard** | https://pashupehchan-api.onrender.com/coop |
 
-## Structure
+> The backend is on a free tier that sleeps when idle — the **first request after a
+> pause takes ~30–60s** (cold start). Open the app once a minute before using it.
+
+## The problem
+
+Most animals a small farmer keeps carry **no ear tag**, records live in memory, and the
+vet is far. Without a reliable identity per animal, vaccination reminders, a trustworthy
+health history, insurance and co-op payments all break down.
+
+## What it does
+
+| Module | What it does |
+| --- | --- |
+| 🐽 **Nose-photo identity** | Enrol 5 nose photos → a fingerprint vector per animal. Re-identify an animal from one photo, matched **within the household** (1-of-few, not 1-of-thousands). A quality gate rejects blurry/dark photos. |
+| 🎙️ **Voice logging** | Speak an event ("aaj teeka laga") or tap an icon; the app repeats what it understood, waits for confirmation, and saves it to the passbook. Icon buttons work with no speech. |
+| 🔔 **Reminders** | Rules from the NDDB vaccination schedule (FMD, HS, BQ, deworming). Logging a vaccination reschedules the next one; overdue/upcoming are flagged. No AI. |
+| 🚑 **Triage + vet routing** | A vet-style red-flag checklist sorts a case into **green / amber / red**, routes to a paravet or the **1962** helpline, and shares the animal's history — **never names a disease or a medicine**. |
+| 📊 **Co-op dashboard** | For the dairy co-op: enrolled animals, vaccination coverage, and open alerts, village by village, plus a field-worker worklist. |
+
+**Languages:** English, हिन्दी, मराठी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, தமிழ், తెలుగు, ಕನ್ನಡ — with a
+first-run picker and an in-app switcher.
+
+## How the identity works
+
+Identity is an **embedding, not a classifier**: the model turns any nose photo into a
+vector, so a new animal is enrolled just by storing its vectors — no retraining, and it
+scales to any number of animals. The embedder is pluggable — a pretrained **MobileNetV3**
+backbone (fine-tunable on field photos later) with a dependency-free **classical** fallback
+so the API always runs. Matching is cosine similarity within the household.
+
+## Tech stack
+
+- **Backend:** FastAPI, SQLAlchemy 2.0, Pillow + NumPy (and optional PyTorch/torchvision
+  for the MobileNet embedder). SQLite for dev, Postgres in production.
+- **Frontend:** Vite + React + TypeScript PWA, phone-first, offline app shell.
 
 ```
-backend/     FastAPI + SQLAlchemy. Data model + identity matching API.
-frontend/    Vite + React PWA. Phone-first, large buttons, Hindi-first.
+backend/
+  app/
+    models.py            households, animals, noseprints, events, reminders
+    identity/            embedder, quality gate, matcher
+    reminders/engine.py  NDDB schedule rules
+    routers/             households, animals, identify, events, reminders, coop
+    static/coop.html     co-op dashboard page
+  scripts/               smoke_test, e2e_http_test, reminders_test
+frontend/
+  src/
+    i18n/                9-language dictionaries + provider
+    screens/             Home, Enrol, Identify, Animal, VoiceLog, Reminders, Triage
+    triageRules.ts, voiceParse.ts
 ```
 
-## Run the backend
+## Run locally
 
-```powershell
+**Backend**
+```bash
 cd backend
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+# Windows: .\.venv\Scripts\Activate.ps1   |   macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt           # optional: -r requirements-ml.txt for MobileNet
+uvicorn app.main:app --reload             # http://localhost:8000
 ```
 
-The API serves on http://localhost:8000 (docs at `/docs`).
-
-### Enable the real identity model (optional)
-
-By default the API runs on a dependency-free classical embedder. To use the
-MobileNetV3 backbone instead:
-
-```powershell
-pip install -r requirements-ml.txt --index-url https://download.pytorch.org/whl/cpu
-```
-
-Restart the server; `GET /health` then reports `mobilenetv3-large-in1k`.
-Animals enrolled under the classical fallback must be re-enrolled after switching.
-
-## Run the frontend
-
-```powershell
+**Frontend**
+```bash
 cd frontend
 npm install
-npm run dev
+npm run dev                               # http://localhost:5173
 ```
 
-## Design notes
+Tests: `python backend/scripts/smoke_test.py` (identity), `e2e_http_test.py` (full API),
+`reminders_test.py` (schedule engine).
 
-- **Identity is an embedding, not a classifier.** The model turns any nose photo
-  into a fingerprint vector, so a new animal is enrolled without retraining.
-  We start from a pretrained CNN backbone and keep the fine-tuning path open for
-  field photos (see `backend/app/identity/embedder.py`).
-- **Match within the household.** A family has 3–10 animals, so identification is
-  a 1-of-few problem, not 1-of-thousands.
-- **Quality gate first.** Blurred or dark photos are rejected on capture.
-- **Offline-first intent.** Identity and logging are designed to work without a
-  network; sync happens when online.
+## Deployment
+
+- **Backend → Render** (Python). Build `pip install -r backend/requirements.txt`; start
+  `cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Reads `DATABASE_URL`
+  (Postgres); `PASHU_STORE_IMAGES=false` keeps only fingerprint vectors (no disk images);
+  `PASHU_CORS_ORIGINS` locks CORS to the frontend. The deployed backend uses the lightweight
+  classical embedder.
+- **Frontend → Vercel** (Vite). Root `frontend/`, build `npm run build`, output `dist`,
+  env `VITE_API_URL` = the backend URL.
+
+## Status & honest caveats
+
+All five modules are built, deployed, and verified end-to-end. Still needed for the field
+(not software):
+
+- **Vet sign-off** on the triage checklist and reminder dates.
+- **Native-speaker review** of the translations (a careful first pass).
+- **Real-animal accuracy** — the model is pretrained, not yet fine-tuned on Indian nose
+  photos; measure accuracy and wrong-match rate on real animals.
+
+## License
+
+[MIT](./LICENSE) © 2026 Pranav
