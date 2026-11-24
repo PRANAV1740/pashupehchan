@@ -17,8 +17,14 @@ async function j<T>(res: Response): Promise<T> {
 export const api = {
   base: BASE,
 
-  async health(): Promise<{ status: string; embedder: string }> {
-    return j(await fetch(`${BASE}/health`));
+  async health(timeoutMs = 10000): Promise<{ status: string; embedder: string }> {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      return await j(await fetch(`${BASE}/health`, { signal: ctrl.signal }));
+    } finally {
+      clearTimeout(timer);
+    }
   },
 
   async listHouseholds(): Promise<Household[]> {

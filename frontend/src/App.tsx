@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import type { Animal, Household } from "./types";
 import { useI18n } from "./i18n";
 import LanguageSheet from "./components/LanguageSheet";
+import BigButton from "./components/BigButton";
 import Home from "./screens/Home";
 import EnrolScreen from "./screens/EnrolScreen";
 import IdentifyScreen from "./screens/IdentifyScreen";
@@ -27,11 +28,11 @@ export default function App() {
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [screen, setScreen] = useState<Screen>({ name: "home" });
-  const [online, setOnline] = useState(false);
+  const [conn, setConn] = useState<"connecting" | "waking" | "online" | "offline">("connecting");
   const [embedder, setEmbedder] = useState<string>("");
   const [toast, setToast] = useState<string | null>(null);
-  const [booting, setBooting] = useState(true);
   const [langOpen, setLangOpen] = useState(false);
+  const connectingRef = useRef(false);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -56,24 +57,39 @@ export default function App() {
     [household, refreshReminders, showToast, t]
   );
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const h = await api.health();
-        setOnline(true);
-        setEmbedder(h.embedder);
-        const existing = await api.listHouseholds();
-        const hh = existing[0] ?? (await api.createHousehold("Mera Ghar"));
-        setHousehold(hh);
-        await refreshAnimals(hh.id);
-        await refreshReminders(hh.id);
-      } catch {
-        setOnline(false);
-      } finally {
-        setBooting(false);
+  // Connect to the backend, retrying through a free-tier cold start (the server
+  // can take ~30-60s to wake). Shows a "waking up" state and recovers on its own.
+  const connect = useCallback(async () => {
+    if (connectingRef.current) return;
+    connectingRef.current = true;
+    setConn("connecting");
+    const deadline = Date.now() + 90_000;
+    try {
+      while (Date.now() < deadline) {
+        try {
+          const h = await api.health(8000);
+          setEmbedder(h.embedder);
+          const existing = await api.listHouseholds();
+          const hh = existing[0] ?? (await api.createHousehold("Mera Ghar"));
+          setHousehold(hh);
+          await refreshAnimals(hh.id);
+          await refreshReminders(hh.id);
+          setConn("online");
+          return;
+        } catch {
+          setConn("waking");
+          await new Promise((r) => setTimeout(r, 3000));
+        }
       }
-    })();
+      setConn("offline");
+    } finally {
+      connectingRef.current = false;
+    }
   }, [refreshAnimals, refreshReminders]);
+
+  useEffect(() => {
+    connect();
+  }, [connect]);
 
   const go = useCallback((s: Screen) => setScreen(s), []);
 
@@ -119,8 +135,8 @@ export default function App() {
           <div className="sub">{screen.name === "home" ? t("brandTagline") : household?.name}</div>
         </div>
         <span className="pill-status">
-          <span className={`dot ${online ? "ok" : "off"}`} />
-          {online ? t("status.online") : t("status.offline")}
+          <span className={`dot ${conn === "online" ? "ok" : "off"}`} />
+          {conn === "online" ? t("status.online") : t("status.offline")}
         </span>
         <button className="globe" onClick={() => setLangOpen(true)} aria-label={t("lang.change")}>
           🌐
@@ -128,15 +144,17 @@ export default function App() {
       </div>
 
       <div className="content">
-        {booting ? (
-          <div className="spinner" />
-        ) : !online ? (
+        {conn === "connecting" || conn === "waking" ? (
+          <div className="card center">
+            <div className="spinner" />
+            {conn === "waking" && <p className="muted">{t("offline.waking")}</p>}
+          </div>
+        ) : conn === "offline" ? (
           <div className="card center">
             <div style={{ fontSize: 40 }}>🔌</div>
             <h3>{t("offline.title")}</h3>
-            <p className="muted">
-              {t("offline.hint")} <code>uvicorn app.main:app --reload</code>
-            </p>
+            <p className="muted">{t("offline.body")}</p>
+            <BigButton emoji="🔄" label={t("offline.retry")} onClick={connect} />
           </div>
         ) : !household ? (
           <div className="spinner" />

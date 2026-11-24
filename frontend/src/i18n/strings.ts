@@ -36,6 +36,9 @@ export const en = {
   "title.animal": "Animal",
   "offline.title": "Could not reach the server",
   "offline.hint": "Start the backend server:",
+  "offline.body": "The server may be waking up or briefly unavailable. Please try again.",
+  "offline.waking": "Waking up the server… this can take up to a minute.",
+  "offline.retry": "Try again",
   "home.identify": "Identify",
   "home.identifyHint": "Find an animal from a nose photo",
   "home.enrol": "Add a new animal",
@@ -1348,14 +1351,58 @@ const triageExt: Partial<Record<Lang, Partial<Dict>>> = {
   },
 };
 
+// Connection / cold-start messages.
+const connExt: Partial<Record<Lang, Partial<Dict>>> = {
+  hi: {
+    "offline.body": "सर्वर शायद जाग रहा है या थोड़ी देर उपलब्ध नहीं। कृपया दोबारा कोशिश करें।",
+    "offline.waking": "सर्वर जाग रहा है… इसमें एक मिनट तक लग सकता है।",
+    "offline.retry": "दोबारा कोशिश करें",
+  },
+  mr: {
+    "offline.body": "सर्व्हर कदाचित सुरू होत आहे किंवा थोडा वेळ उपलब्ध नाही. कृपया पुन्हा प्रयत्न करा.",
+    "offline.waking": "सर्व्हर सुरू होत आहे… यास एक मिनिट लागू शकतो.",
+    "offline.retry": "पुन्हा प्रयत्न करा",
+  },
+  gu: {
+    "offline.body": "સર્વર કદાચ ચાલુ થઈ રહ્યું છે અથવા થોડી વાર ઉપલબ્ધ નથી. કૃપા કરી ફરી પ્રયાસ કરો.",
+    "offline.waking": "સર્વર ચાલુ થઈ રહ્યું છે… એક મિનિટ જેટલો સમય લાગી શકે.",
+    "offline.retry": "ફરી પ્રયાસ કરો",
+  },
+  pa: {
+    "offline.body": "ਸਰਵਰ ਸ਼ਾਇਦ ਜਾਗ ਰਿਹਾ ਹੈ ਜਾਂ ਥੋੜ੍ਹੀ ਦੇਰ ਉਪਲਬਧ ਨਹੀਂ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+    "offline.waking": "ਸਰਵਰ ਜਾਗ ਰਿਹਾ ਹੈ… ਇਸ ਵਿੱਚ ਇੱਕ ਮਿੰਟ ਤੱਕ ਲੱਗ ਸਕਦਾ ਹੈ।",
+    "offline.retry": "ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+  },
+  bn: {
+    "offline.body": "সার্ভার হয়তো চালু হচ্ছে বা কিছুক্ষণ অনুপলব্ধ। অনুগ্রহ করে আবার চেষ্টা করুন।",
+    "offline.waking": "সার্ভার চালু হচ্ছে… এক মিনিট পর্যন্ত লাগতে পারে।",
+    "offline.retry": "আবার চেষ্টা করুন",
+  },
+  ta: {
+    "offline.body": "சர்வர் இயங்கத் தொடங்கலாம் அல்லது சிறிது நேரம் கிடைக்காமல் இருக்கலாம். மீண்டும் முயற்சி செய்யவும்.",
+    "offline.waking": "சர்வர் இயங்குகிறது… ஒரு நிமிடம் வரை ஆகலாம்.",
+    "offline.retry": "மீண்டும் முயற்சி செய்",
+  },
+  te: {
+    "offline.body": "సర్వర్ బహుశా మేల్కొంటోంది లేదా కొద్దిసేపు అందుబాటులో లేదు. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+    "offline.waking": "సర్వర్ మేల్కొంటోంది… ఒక నిమిషం వరకు పట్టవచ్చు.",
+    "offline.retry": "మళ్ళీ ప్రయత్నించు",
+  },
+  kn: {
+    "offline.body": "ಸರ್ವರ್ ಬಹುಶಃ ಪ್ರಾರಂಭವಾಗುತ್ತಿದೆ ಅಥವಾ ಸ್ವಲ್ಪ ಸಮಯ ಲಭ್ಯವಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "offline.waking": "ಸರ್ವರ್ ಪ್ರಾರಂಭವಾಗುತ್ತಿದೆ… ಒಂದು ನಿಮಿಷದವರೆಗೆ ತೆಗೆದುಕೊಳ್ಳಬಹುದು.",
+    "offline.retry": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+  },
+};
+
 export const dictionaries: Record<Lang, Partial<Dict>> = {
   en,
-  hi: { ...hi, ...voiceExt.hi, ...remindExt.hi, ...triageExt.hi },
-  mr: { ...mr, ...voiceExt.mr, ...remindExt.mr, ...triageExt.mr },
-  gu: { ...gu, ...voiceExt.gu, ...remindExt.gu, ...triageExt.gu },
-  pa: { ...pa, ...voiceExt.pa, ...remindExt.pa, ...triageExt.pa },
-  bn: { ...bn, ...voiceExt.bn, ...remindExt.bn, ...triageExt.bn },
-  ta: { ...ta, ...voiceExt.ta, ...remindExt.ta, ...triageExt.ta },
-  te: { ...te, ...voiceExt.te, ...remindExt.te, ...triageExt.te },
-  kn: { ...kn, ...voiceExt.kn, ...remindExt.kn, ...triageExt.kn },
+  hi: { ...hi, ...voiceExt.hi, ...remindExt.hi, ...triageExt.hi, ...connExt.hi },
+  mr: { ...mr, ...voiceExt.mr, ...remindExt.mr, ...triageExt.mr, ...connExt.mr },
+  gu: { ...gu, ...voiceExt.gu, ...remindExt.gu, ...triageExt.gu, ...connExt.gu },
+  pa: { ...pa, ...voiceExt.pa, ...remindExt.pa, ...triageExt.pa, ...connExt.pa },
+  bn: { ...bn, ...voiceExt.bn, ...remindExt.bn, ...triageExt.bn, ...connExt.bn },
+  ta: { ...ta, ...voiceExt.ta, ...remindExt.ta, ...triageExt.ta, ...connExt.ta },
+  te: { ...te, ...voiceExt.te, ...remindExt.te, ...triageExt.te, ...connExt.te },
+  kn: { ...kn, ...voiceExt.kn, ...remindExt.kn, ...triageExt.kn, ...connExt.kn },
 };
