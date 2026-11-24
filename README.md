@@ -4,11 +4,14 @@
 
 > **Naak se pehchan, awaaz se khata**: identity by the nose, a record kept by voice.
 
+### ▶ Live demo: https://pashupehchan-psi.vercel.app
+
 PashuPehchan gives every **untagged** cattle or buffalo an identity from a photo of
 its nose, and keeps its health record by **voice**, so vaccinations aren't missed,
 sick animals reach a vet sooner, and dairy co-ops and insurers can trust the record.
 Phone-first, works in **9 Indian languages**, and designed for people who don't type.
 
+[![Live demo](https://img.shields.io/badge/%E2%96%B6%20Live%20demo-online-1f7a4d)](https://pashupehchan-psi.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 ![Backend](https://img.shields.io/badge/backend-FastAPI-009688)
 ![Frontend](https://img.shields.io/badge/frontend-React%20%2B%20Vite-61dafb)
