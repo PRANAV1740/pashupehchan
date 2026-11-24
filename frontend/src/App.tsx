@@ -63,11 +63,14 @@ export default function App() {
     if (connectingRef.current) return;
     connectingRef.current = true;
     setConn("connecting");
-    const deadline = Date.now() + 90_000;
+    // Ride out a free-tier cold start generously: each attempt keeps the request
+    // open long enough for the server to wake and answer, and we keep trying for
+    // a few minutes before giving up.
+    const deadline = Date.now() + 180_000;
     try {
       while (Date.now() < deadline) {
         try {
-          const h = await api.health(8000);
+          const h = await api.health(45000);
           setEmbedder(h.embedder);
           const existing = await api.listHouseholds();
           const hh = existing[0] ?? (await api.createHousehold("Mera Ghar"));
@@ -78,7 +81,7 @@ export default function App() {
           return;
         } catch {
           setConn("waking");
-          await new Promise((r) => setTimeout(r, 3000));
+          await new Promise((r) => setTimeout(r, 2000));
         }
       }
       setConn("offline");
