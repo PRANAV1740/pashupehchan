@@ -12,10 +12,18 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>
 );
 
-// Register the app-shell service worker in production only — in dev it would
-// cache bundles and fight Vite's hot reload.
-if (import.meta.env.PROD && "serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
-  });
+// No service worker: unregister any previously-installed one and clear its
+// caches so nobody is stuck on a stale cached build. (The offline app-shell
+// cache caused more confusion than value for a backend-dependent app.)
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .getRegistrations()
+    .then((regs) => regs.forEach((r) => r.unregister()))
+    .catch(() => {});
+}
+if (typeof caches !== "undefined") {
+  caches
+    .keys()
+    .then((keys) => keys.forEach((k) => caches.delete(k)))
+    .catch(() => {});
 }
